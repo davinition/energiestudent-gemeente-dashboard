@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <title>EnergieStudent - Gemeenten Connecties Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #ffc801 0%, #ffa206 100%);
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #ffa206;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .stat-value {
+            font-size: 3em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ffc801 0%, #ffa206 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .chart-card h2 {
+            color: #ffa206;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .table-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .table-card h2 {
+            color: #ffa206;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+        
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #ffa206;
+        }
+        
+        .connections-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow-x: auto;
+            display: block;
+        }
+        
+        .connections-table thead {
+            background: linear-gradient(135deg, #ffc801 0%, #ffa206 100%);
+            color: white;
+        }
+        
+        .connections-table th,
+        .connections-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .connections-table th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            letter-spacing: 0.5px;
+        }
+        
+        .connections-table tbody tr:hover {
+            background-color: #f8f9ff;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .status-accepted {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-responded {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        
+        .profile-link {
+            color: #ffa206;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .profile-link:hover {
+            text-decoration: underline;
+        }
+        
+        .export-btn {
+            background: linear-gradient(135deg, #ffc801 0%, #ffa206 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-bottom: 20px;
+        }
+        
+        .export-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.2em;
+        }
+        
+        @media (max-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .connections-table {
+                font-size: 0.9em;
+            }
+            
+            .connections-table th,
+            .connections-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+                        <h1>🏛️ EnergieStudent - Gemeenten Connecties</h1>
+            <p>Overzicht van alle connecties in Wageningen, Amsterdam, Utrecht, Rotterdam en omliggende regio's</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalConnections">0</div>
+                <div class="stat-label">Totaal Connecties</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="acceptedConnections">0</div>
+                <div class="stat-label">Geaccepteerd</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="respondedConnections">0</div>
+                <div class="stat-label">Gereageerd</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="responseRate">0%</div>
+                <div class="stat-label">Response Rate</div>
+            </div>
+        </div>
+        
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2>📊 Connecties per Hoofdregio</h2>
+                <canvas id="regionChart"></canvas>
+            </div>
+            
+            <div class="chart-card">
+                <h2>📈 Status Verdeling</h2>
+                <canvas id="statusChart"></canvas>
+            </div>
+            
+            <div class="chart-card" style="grid-column: 1 / -1;">
+                <h2>🗺️ Gedetailleerde Regio Verdeling</h2>
+                <canvas id="detailedRegionChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="table-card">
+            <h2>📋 Alle Connecties</h2>
+            
+            <button class="export-btn" onclick="exportToCSV()">📥 Exporteer naar CSV</button>
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="regionFilter">Filter op Regio:</label>
+                    <select id="regionFilter" onchange="filterTable()">
+                        <option value="">Alle regio's</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="statusFilter">Filter op Status:</label>
+                    <select id="statusFilter" onchange="filterTable()">
+                        <option value="">Alle statussen</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="searchFilter">Zoeken:</label>
+                    <input type="text" id="searchFilter" placeholder="Naam, bedrijf, functie..." oninput="filterTable()">
+                </div>
+            </div>
+            
+            <table class="connections-table">
+                <thead>
+                    <tr>
+                        <th>Naam</th>
+                        <th>Bedrijf</th>
+                        <th>Functie</th>
+                        <th>Locatie</th>
+                        <th>Regio</th>
+                        <th>Status</th>
+                        <th>Campagne</th>
+                        <th>Contact</th>
+                    </tr>
+                </thead>
+                <tbody id="connectionsTableBody">
+                </tbody>
+            </table>
+            
+            <div id="noResults" class="no-results" style="display: none;">
+                Geen connecties gevonden met de huidige filters.
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Data wordt hier ingeladen
+        const dashboardData = {"total_connections": 110, "by_status": {"Connection request accepted": 57, "Responded": 53}, "by_main_region": {"Rotterdam": 39, "Wageningen": 31, "Amsterdam": 25, "Utrecht": 15}, "by_detailed_region": {"Amsterdam": 18, "Utrecht": 15, "Rotterdam": 12, "Wageningen (regio: Arnhem)": 10, "Wageningen (regio: Nijmegen)": 10, "Wageningen (regio: Ede)": 8, "Rotterdam (regio: Den haag)": 8, "Rotterdam (regio: Delft)": 6, "Rotterdam (regio: Dordrecht)": 6, "Wageningen": 3, "Rotterdam (regio: Zoetermeer)": 3, "Rotterdam (regio: Vlaardingen)": 2, "Amsterdam (regio: Haarlem)": 2, "Amsterdam (regio: Purmerend)": 2, "Amsterdam (regio: Zaanstad)": 2, "Rotterdam (regio: Capelle aan den ijssel)": 1, "Amsterdam (regio: Diemen)": 1, "Rotterdam (regio: Schiedam)": 1}, "by_campaign": {"Gemeentes | Persona 1 | 3.0 | Yoshi": 44, "Gemeentes | Persona 1 | 2.0": 23, "Gemeente | Persona 2 | 1.0": 20, "Gemeentes | Persona 1 | 1.0": 17, "Gemeente | Persona 2 | 2.0 | Yoshi": 6}, "connections": [{"name": "Priscilla Schoots", "company": "Gemeente Albrandswaard", "occupation": "Beleidsmedewerker Duurzaamheid", "location": "Rotterdam, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/priscilla-schoots", "email": NaN, "phone": NaN, "responded": false}, {"name": "Pieter Kos", "company": "Gemeente Albrandswaard", "occupation": "Wethouder Ruimtelijke Ordening, Woningbouw, Duurzaamheid, Buitenruimte en Wijkregie", "location": "Leiden, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Vlaardingen)", "main_region": "Rotterdam", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/pieterkos", "email": NaN, "phone": NaN, "responded": false}, {"name": "Marinus Veltman", "company": "Gemeente Amstelveen", "occupation": "Projectleider Energietransitie in de Buurt", "location": "Zeist, Utrecht, Netherlands", "status": "Connection request accepted", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/marinus-jan-veltman-14281720a", "email": "marinusjan.veltman@ecosucces.nl", "phone": NaN, "responded": false}, {"name": "Noor Veenhoven", "company": "Gemeente Amstelveen", "occupation": "Projectleider energietransitie", "location": "Amsterdam, North Holland, Netherlands", "status": "Connection request accepted", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/noor-veenhoven-1b5347124", "email": "noorveenhoven@gmail.com", "phone": NaN, "responded": false}, {"name": "Richard Kaper", "company": "Gemeente Arnhem", "occupation": "Programmamanager Energietransitie & Circulariteit", "location": "Arnhem-Nijmegen Region", "status": "Connection request accepted", "region": "Wageningen (regio: Arnhem)", "main_region": "Wageningen", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/richardkaper", "email": NaN, "phone": NaN, "responded": false}, {"name": "Bart Jansen", "company": "Gemeente Arnhem", "occupation": "Project Manager Energy Transition", "location": "Wageningen, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen", "main_region": "Wageningen", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/bartjansenwageningen", "email": "bart@klimaatkwadraat.nl", "phone": NaN, "responded": true}, {"name": "Martin Werkman", "company": "Gemeente Arnhem", "occupation": "Projectmanager Energietransitie", "location": "Arnhem-Nijmegen Region", "status": "Connection request accepted", "region": "Wageningen (regio: Arnhem)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/martin-werkman-3a0b196", "email": NaN, "phone": NaN, "responded": false}, {"name": "Harma Van Kleef", "company": "Gemeente Arnhem", "occupation": "Project-/participatiemanager SEWA collectief en energietransitie", "location": "Arnhem, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Arnhem)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/harmav", "email": NaN, "phone": NaN, "responded": true}, {"name": "Maarten Rigter", "company": "Gemeente Baarn", "occupation": "Projectleider duurzaamheid", "location": "Utrecht, Utrecht, Netherlands", "status": "Connection request accepted", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/maarten-rigter-74430634", "email": NaN, "phone": NaN, "responded": false}, {"name": "Floris Eigenhuis", "company": "Gemeente Baarn", "occupation": "Fractieadviseur", "location": "Amersfoort, Utrecht, Netherlands", "status": "Connection request accepted", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/floris-eigenhuis", "email": "floris_eigenhuis@hotmail.com", "phone": NaN, "responded": false}, {"name": "Martine Burgstaller", "company": "Gemeente Barneveld", "occupation": "Beleidsmedewerker Duurzaamheid", "location": "Ede, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Ede)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/martine-burgstaller-b3b790b", "email": "m.burgstaller@barneveld.nl", "phone": NaN, "responded": true}, {"name": "Hanno Takens", "company": "Gemeente Bloemendaal", "occupation": "Projectleider & beleidsadviseur Energietransitie", "location": "Haarlem, North Holland, Netherlands", "status": "Responded", "region": "Amsterdam (regio: Haarlem)", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/hannotakens", "email": NaN, "phone": NaN, "responded": true}, {"name": "Nadine Ter Harmsel", "company": "Gemeente Bloemendaal", "occupation": "Beleidsmedewerker Duurzaamheid", "location": "Amsterdam, North Holland, Netherlands", "status": "Connection request accepted", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/nadine-ter-harmsel-369960174", "email": NaN, "phone": NaN, "responded": false}, {"name": "Hessel Kruisman", "company": "Gemeente Bloemendaal", "occupation": "Programmamanager Duurzaamheid at Gemeente Bloemendaal", "location": "Amsterdam, North Holland, Netherlands", "status": "Connection request accepted", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/hesselkruisman", "email": "h.kruisman@hetnet.nl", "phone": "06 57644998", "responded": false}, {"name": "Nienke Adelerhof", "company": "Gemeente Bodegraven-Reeuwijk", "occupation": "Senior beleidsadviseur duurzaamheid", "location": "Amsterdam, North Holland, Netherlands", "status": "Connection request accepted", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/nienke-adelerhof-15870991", "email": NaN, "phone": NaN, "responded": false}, {"name": "Anne Berkheij", "company": "Gemeente Bodegraven-Reeuwijk", "occupation": "Beleidsadviseur duurzaamheid", "location": "Woerden, Utrecht, Netherlands", "status": "Responded", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/anneberkheij", "email": NaN, "phone": NaN, "responded": true}, {"name": "Pouwel Inberg", "company": "Gemeente Brummen", "occupation": "Wethouder Gemeente Brummen", "location": "Arnhem-Nijmegen Region", "status": "Responded", "region": "Wageningen (regio: Arnhem)", "main_region": "Wageningen", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/pouwel-inberg-ab41a117", "email": NaN, "phone": NaN, "responded": true}, {"name": "Esmae Wittenberg", "company": "Gemeente Capelle aan den IJssel", "occupation": "Projectleider duurzaamheid", "location": "Rotterdam, South Holland, Netherlands", "status": "Responded", "region": "Rotterdam", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/esmae-wittenberg-6a772b22b", "email": NaN, "phone": NaN, "responded": true}, {"name": "Bas Bunnik", "company": "Gemeente Capelle aan den IJssel", "occupation": "Projectleider Energietransitie", "location": "Amersfoort, Utrecht, Netherlands", "status": "Connection request accepted", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/bas-bunnik-90", "email": "bas.bunnik7@gmail.com", "phone": NaN, "responded": false}, {"name": "Sven Bos", "company": "Gemeente Capelle aan den IJssel", "occupation": "Projectleider Duurzaamheid", "location": "Paesi Bassi", "status": "Responded", "region": "Rotterdam (regio: Capelle aan den ijssel)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/sven-erik-bos-5a00704b", "email": NaN, "phone": NaN, "responded": true}, {"name": "Merel Tilstra", "company": "Gemeente Delft", "occupation": "Projectleider duurzaam koken en tapwater", "location": "The Randstad, Netherlands", "status": "Responded", "region": "Rotterdam (regio: Delft)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/mereltilstra", "email": "mereltilstra@hotmail.com", "phone": NaN, "responded": true}, {"name": "Sanne Cocx", "company": "Gemeente Delft", "occupation": "Projectleider Energiearmoede", "location": "Rijswijk, South Holland, Netherlands", "status": "Responded", "region": "Rotterdam (regio: Delft)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/sanne-cocx-744162153", "email": NaN, "phone": NaN, "responded": true}, {"name": "Maaike Zwart", "company": "Gemeente Delft", "occupation": "Wethouder duurzaamheid, werk & inkomen en economie", "location": "Delft, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Delft)", "main_region": "Rotterdam", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/maaike-zwart-87a67b13", "email": "maaike.a.m.zwart@gmail.com", "phone": NaN, "responded": false}, {"name": "Karin Schrederhof", "company": "Gemeente Delft", "occupation": "wethouder wonen/wmo/sport", "location": "Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Delft)", "main_region": "Rotterdam", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/karin-schrederhof-a9b101a", "email": NaN, "phone": NaN, "responded": false}, {"name": "Sander Den Hollander", "company": "Gemeente Delft", "occupation": "Projectmanager energietransitie", "location": "Delft, South Holland, Netherlands", "status": "Responded", "region": "Rotterdam (regio: Delft)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/sander-den-hollander-38315910", "email": NaN, "phone": NaN, "responded": true}, {"name": "Andrea Schoemaker", "company": "Gemeente Den Haag", "occupation": "Senior projectleider Energietransitie", "location": "The Hague, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Den haag)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/andrea-schoemaker-0b70639b", "email": NaN, "phone": NaN, "responded": false}, {"name": "Ludwig Bremberg", "company": "Gemeente Den Haag", "occupation": "Beleidsmedewerker Duurzaamheid en Digitalisering", "location": "Utrecht, Utrecht, Netherlands", "status": "Responded", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/ludwig-bremberg-ab4696133", "email": NaN, "phone": NaN, "responded": true}, {"name": "Ingrid Essenburg", "company": "Gemeente Den Haag", "occupation": "Redacteur", "location": "The Hague, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Den haag)", "main_region": "Rotterdam", "campaign": "Gemeente | Persona 2 | 2.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/ingridessenburg", "email": NaN, "phone": NaN, "responded": false}, {"name": "Florian Kühnert", "company": "Gemeente Den Haag", "occupation": "Beleidsmedewerker Participatie Energietransitie", "location": "Utrecht, Utrecht, Netherlands", "status": "Connection request accepted", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/floriankuehnert", "email": NaN, "phone": NaN, "responded": false}, {"name": "Pepijn Lijklema", "company": "Gemeente Den Haag", "occupation": "Senior Beleidsmedewerker strategie & beleid energietransitie", "location": "Den Burg, North Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Den haag)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/pepijnlijklema", "email": "lijklema@gmail.com", "phone": "+31624448483", "responded": false}, {"name": "Alexander Robertus", "company": "Gemeente Den Haag", "occupation": "Beleidsmedewerker planontwikkeling energietransitie", "location": "Amsterdam, North Holland, Netherlands", "status": "Responded", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/alexanderrobertus-665b35157", "email": "arobertus@live.nl", "phone": NaN, "responded": true}, {"name": "Heleen Tromp", "company": "Gemeente Den Haag", "occupation": "Manager Energietransitie", "location": "Amsterdam, North Holland, Netherlands", "status": "Connection request accepted", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/heleen-tromp-6463865", "email": NaN, "phone": NaN, "responded": false}, {"name": "Lianna Van Gils", "company": "Gemeente Den Haag", "occupation": "Projectleider Energietransitie", "location": "Delft, South Holland, Netherlands", "status": "Responded", "region": "Rotterdam (regio: Den haag)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/lianna-van-gils-36b717201", "email": NaN, "phone": NaN, "responded": true}, {"name": "Nynke Douma", "company": "Gemeente Den Haag", "occupation": "Senior projectmanager energietransitie", "location": "Delft, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Den haag)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/nynkerixtdouma", "email": NaN, "phone": NaN, "responded": false}, {"name": "Sanjeeva Van Loo - Van Elleswijk", "company": "Gemeente Den Haag", "occupation": "Kwartiermaker/Gebiedsregiseur (tijdelijk)", "location": "The Hague, South Holland, Netherlands", "status": "Responded", "region": "Rotterdam (regio: Den haag)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/sanjeeva-van-elleswijk", "email": NaN, "phone": NaN, "responded": true}, {"name": "Nazier Aziem", "company": "Gemeente Den Haag", "occupation": "Projectmanager Energietransitie", "location": "Netherlands", "status": "Responded", "region": "Rotterdam (regio: Den haag)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/nazieraziem", "email": NaN, "phone": NaN, "responded": true}, {"name": "Henry Terlouw", "company": "Gemeente Den Haag", "occupation": "Afdelingshoofd Energietransitie", "location": "The Hague, South Holland, Netherlands", "status": "Responded", "region": "Rotterdam (regio: Den haag)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/henry-terlouw-ba56405", "email": NaN, "phone": NaN, "responded": true}, {"name": "Sylvia De Blij", "company": "gemeente Diemen", "occupation": "Teammanager Wijkbeheer & opdrachtgever onderzoeksopdracht Gemeentewerf a.i.", "location": "Purmerend, North Holland, Netherlands", "status": "Connection request accepted", "region": "Amsterdam (regio: Purmerend)", "main_region": "Amsterdam", "campaign": "Gemeente | Persona 2 | 2.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/sylviadeblij", "email": NaN, "phone": NaN, "responded": false}, {"name": "Jowan Kelderman", "company": "gemeente Diemen", "occupation": "beleidsmedewerker milieu/duurzaamheid", "location": "The Randstad, Netherlands", "status": "Connection request accepted", "region": "Amsterdam (regio: Diemen)", "main_region": "Amsterdam", "campaign": "Gemeente | Persona 2 | 2.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/jowankelderman", "email": "ignotus_sum@outlook.com", "phone": NaN, "responded": false}, {"name": "Angelique Bansie", "company": "gemeente Diemen", "occupation": "Ondernemingsraad", "location": "Amsterdam, North Holland, Netherlands", "status": "Connection request accepted", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/angelique-bansie-01a084108", "email": NaN, "phone": NaN, "responded": false}, {"name": "Tanja De Jonge", "company": "Gemeente Dordrecht", "occupation": "Wethouder", "location": "Dordrecht, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Dordrecht)", "main_region": "Rotterdam", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/tdejonge", "email": "tanja@farfallaservices.nl", "phone": NaN, "responded": false}, {"name": "Loes Van Luijk", "company": "Gemeente Dordrecht", "occupation": "Programmanager Energietransitie en klimaatneutraal", "location": "Dordrecht, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Dordrecht)", "main_region": "Rotterdam", "campaign": "Gemeente | Persona 2 | 2.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/loesvanluijk", "email": "loesvanluijkdilven@gmail.com", "phone": NaN, "responded": false}, {"name": "Ruben Roos", "company": "Gemeente Dordrecht", "occupation": "Adviseur energiebesparing - beleidsadviseur", "location": "The Hague, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Dordrecht)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/rubenroos", "email": NaN, "phone": NaN, "responded": false}, {"name": "Ifor Schrauwen", "company": "Gemeente Dordrecht", "occupation": "procesregisseur Energietransitie", "location": "Dordrecht, South Holland, Netherlands", "status": "Responded", "region": "Rotterdam (regio: Dordrecht)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/iforschrauwen", "email": NaN, "phone": NaN, "responded": true}, {"name": "Jasmin Oldenburg", "company": "Gemeente Dordrecht", "occupation": "Projectmanager energietransitie MaVa", "location": "The Randstad, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Dordrecht)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/jasmin-oldenburg", "email": "jasmin.oldenburg@live.nl", "phone": NaN, "responded": false}, {"name": "Dirk Dijkshoorn", "company": "Gemeente Edam-Volendam", "occupation": "Wethouder Financiën, Energietransitie en Duurzaamheid", "location": "Amsterdam, North Holland, Netherlands", "status": "Connection request accepted", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/dirk-dijkshoorn-95016964", "email": NaN, "phone": NaN, "responded": false}, {"name": "Katharina Grimm", "company": "Gemeente Epe", "occupation": "Projectleider Energietransitie Bedrijventerreinen & Warmteprogramma", "location": "Arnhem, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Arnhem)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/katharinagrimm1", "email": NaN, "phone": NaN, "responded": true}, {"name": "Lara Kranendijk", "company": "Gemeente Gennep", "occupation": "Beleidsmedewerker Klimaat en Water / Projectleider Lokale Aanpak Isolatie", "location": "Nijmegen, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Nijmegen)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/lara-kranendijk-1ab975171", "email": NaN, "phone": NaN, "responded": true}, {"name": "Gerard Verweij", "company": "Gemeente Gooise Meren", "occupation": "Beleidsadviseur Duurzaamheid", "location": "Amersfoort, Utrecht, Netherlands", "status": "Connection request accepted", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/gerard-verweij-82187036", "email": "gverweij12@gmail.com", "phone": NaN, "responded": false}, {"name": "Jasper M", "company": "Gemeente Gooise Meren", "occupation": "Beleidsadviseur Energietransitie a.i.", "location": "Amsterdam Area", "status": "Responded", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/jmekkes", "email": NaN, "phone": NaN, "responded": true}, {"name": "Danny Van Der Roest", "company": "Gemeente Gouda", "occupation": "Omgevings- en projectmanager Energietransitie", "location": "Rotterdam, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/danny-van-der-roest-45329b1b", "email": NaN, "phone": NaN, "responded": false}, {"name": "Marise Tabaksblat", "company": "Gemeente Gouda", "occupation": "Programmasecretaris Energietransitie", "location": "Delft, South Holland, Netherlands", "status": "Responded", "region": "Rotterdam (regio: Delft)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/marise-tabaksblat", "email": NaN, "phone": NaN, "responded": true}, {"name": "Steven Esselink", "company": "Gemeente Haaksbergen", "occupation": "Beleidsmedewerker duurzaamheid", "location": "Greater Enschede Area", "status": "Connection request accepted", "region": "Wageningen (regio: Ede)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/steven-esselink-b84a1840", "email": NaN, "phone": NaN, "responded": false}, {"name": "Liza Cremer", "company": "Gemeente Heemskerk", "occupation": "Projectleider energietransitie", "location": "Amsterdam Area", "status": "Responded", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/lizacremer", "email": NaN, "phone": NaN, "responded": true}, {"name": "Sanne Elfrink", "company": "Gemeente Heemskerk", "occupation": "Teamleider/Programmamanager Energietransitie", "location": "Haarlem, North Holland, Netherlands", "status": "Connection request accepted", "region": "Amsterdam (regio: Haarlem)", "main_region": "Amsterdam", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/sanneelfrink", "email": NaN, "phone": NaN, "responded": false}, {"name": "Ron Everaerts", "company": "Gemeente Heemskerk", "occupation": "Projectleider Energietransitie", "location": "Amsterdam, North Holland, Netherlands", "status": "Responded", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/roneveraerts", "email": NaN, "phone": NaN, "responded": true}, {"name": "Marit Van Velzen", "company": "gemeente Heemstede", "occupation": "Beleidsmedewerker Duurzaamheid", "location": "Hillegom, South Holland, Netherlands", "status": "Connection request accepted", "region": "Wageningen (regio: Ede)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/marit-van-velzen-0aa06736", "email": NaN, "phone": NaN, "responded": false}, {"name": "Esther Schenkelaars", "company": "Gemeente Heumen", "occupation": "Projectleider Duurzaamheid - Warmtetransitie", "location": "Nijmegen, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Nijmegen)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/estherschenkelaars", "email": NaN, "phone": NaN, "responded": true}, {"name": "Pepijn Van Essen", "company": "Gemeente Horst aan de Maas", "occupation": "Beleidsmedewerker Energietransitie en Duurzaamheid", "location": "Arnhem-Nijmegen Region", "status": "Responded", "region": "Wageningen (regio: Arnhem)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/pepijnvanessen", "email": NaN, "phone": NaN, "responded": true}, {"name": "Bas Spekreijse", "company": "Gemeente IJsselstein (ut)", "occupation": "Beleidsmedewerker Energietransitie, duurzaamheid en milieu", "location": "Gouda, South Holland, Netherlands", "status": "Responded", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/basspekreijse", "email": NaN, "phone": NaN, "responded": true}, {"name": "Romina Hamel", "company": "Gemeente Krimpen aan den IJssel", "occupation": "Policy Officer Sustainability", "location": "Rotterdam, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/romina-hamel-6a5194172", "email": "rominahamel12@hotmail.com", "phone": NaN, "responded": false}, {"name": "Hewar Marif", "company": "Gemeente Leidschendam-Voorburg", "occupation": "Projectleider Duurzaamheid", "location": "Den Haag, Südholland, Niederlande", "status": "Responded", "region": "Wageningen (regio: Ede)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/hewar-marif-4830b47a", "email": NaN, "phone": NaN, "responded": true}, {"name": "Tim Rijs", "company": "Gemeente Lingewaard", "occupation": "Beleidsmedewerker energietransitie", "location": "Nijmegen, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Nijmegen)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/tim-rijs", "email": "timrijs59@hotmail.com", "phone": NaN, "responded": true}, {"name": "Maarten Van Den Bos", "company": "Gemeente Lingewaard", "occupation": "Wethouder ruimtelijke ordening, duurzaamheid, handhaving en milieu", "location": "Arnhem-Nijmegen Region", "status": "Connection request accepted", "region": "Wageningen (regio: Arnhem)", "main_region": "Wageningen", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/maarten-van-den-bos-2a934933", "email": NaN, "phone": NaN, "responded": false}, {"name": "Jitske Fijneman", "company": "gemeente Lochem", "occupation": "Beleidsadviseur Verduurzaming Gebouwde Omgeving & Energiearmoede", "location": "Nijmegen, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Nijmegen)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/jitske-fijneman", "email": NaN, "phone": NaN, "responded": true}, {"name": "Josine Visser", "company": "gemeente Maasdriel", "occupation": "Beleidsadviseur Duurzaamheid", "location": "Arnhem, Gelderland, Netherlands", "status": "Connection request accepted", "region": "Wageningen (regio: Arnhem)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/josinervisser", "email": NaN, "phone": NaN, "responded": false}, {"name": "Jeroen Van Den Heuvel", "company": "Gemeente Maashorst", "occupation": "Wethouder Duurzaamheid, Groen en Recreatie - Gemeente Maashorst", "location": "Arnhem-Nijmegen Region", "status": "Connection request accepted", "region": "Wageningen (regio: Arnhem)", "main_region": "Wageningen", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/jeroenvdheuvel", "email": NaN, "phone": NaN, "responded": false}, {"name": "Boris Stein", "company": "Gemeente Maassluis", "occupation": "Projectleider Energietransitie", "location": "Rotterdam, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/boris-stein-bb306154", "email": NaN, "phone": NaN, "responded": false}, {"name": "Saskia Van Weeren", "company": "Gemeente Midden-Delfland", "occupation": "Externe adviseur doorontwikkeling cluster Energietransitie", "location": "Rotterdam, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam", "main_region": "Rotterdam", "campaign": "Gemeente | Persona 2 | 2.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/saskia-van-weeren", "email": NaN, "phone": NaN, "responded": false}, {"name": "Mika Timmerman", "company": "Gemeente Montferland", "occupation": "Junior beleidsmedewerker energietransitie en duurzaamheid", "location": "Rheden, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Ede)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/mika-timmerman", "email": NaN, "phone": NaN, "responded": true}, {"name": "Nikki Van Der Zwet Slotenmaker", "company": "Gemeente Montfoort", "occupation": "Beleidsadviseur Duurzaamheid", "location": "Utrecht, Utrecht, Netherlands", "status": "Connection request accepted", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/nikkivdzwetslotenmaker", "email": NaN, "phone": NaN, "responded": false}, {"name": "Michael Hetterschijt", "company": "Gemeente Nieuwkoop", "occupation": "Beleidsmedewerker Duurzaamheid", "location": "Utrecht, Utrecht, Netherlands", "status": "Connection request accepted", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/michael-hetterschijt-424b6a236", "email": "michaelhetterschijt@gmail.com", "phone": 622999030, "responded": false}, {"name": "Arie Roos", "company": "Gemeente Nieuwkoop", "occupation": "Procesmanager Energietransitie", "location": "Amsterdam, North Holland, Netherlands", "status": "Connection request accepted", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/arie-roos-8ab4931a1", "email": NaN, "phone": NaN, "responded": false}, {"name": "Erik Strating", "company": "gemeente Nieuwkoop", "occupation": "Teamleider Economie & Duurzaamheid", "location": "Amsterdam, North Holland, Netherlands", "status": "Responded", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/erik-strating-b60361b", "email": NaN, "phone": NaN, "responded": true}, {"name": "Jan Wijnia", "company": "Gemeente Nijmegen", "occupation": "Wethouder (GroenLinks), Nijmegen: duurzaamheid, wonen, mobiliteit: 1 sept 2021 tot 22 juni 2022.", "location": "Nijmegen, Gelderland, Netherlands", "status": "Connection request accepted", "region": "Wageningen (regio: Nijmegen)", "main_region": "Wageningen", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/jan-wijnia-7a359613a", "email": NaN, "phone": NaN, "responded": false}, {"name": "Sandor Lowik", "company": "Gemeente Nuenen c.a.", "occupation": "Wethouder Duurzaamheid, Maatschappelijk vastgoed en Mobiliteit", "location": "Nuenen, North Brabant, Netherlands", "status": "Connection request accepted", "region": "Wageningen (regio: Ede)", "main_region": "Wageningen", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/sandor-lowik-431671105", "email": "sandor-gl@outlook.com", "phone": NaN, "responded": false}, {"name": "Marlous Goeman", "company": "Gemeente Oss", "occupation": "Beleidsregisseur energietransitie", "location": "Nijmegen, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Nijmegen)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/marlous-goeman-8a090847", "email": "m.a.goeman@gmail.com", "phone": NaN, "responded": true}, {"name": "Imane M", "company": "Gemeente Ouder-Amstel", "occupation": "Junior projectleider duurzaamheid", "location": "Amsterdam, North Holland, Netherlands", "status": "Connection request accepted", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/imane-m-382701352", "email": NaN, "phone": NaN, "responded": false}, {"name": "Rick Stegeman", "company": "Gemeente Raalte", "occupation": "Beleidsadviseur Energietransitie", "location": "Enschede, Overijssel, Netherlands", "status": "Responded", "region": "Wageningen (regio: Ede)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/rick-stegeman-90322a174", "email": NaN, "phone": NaN, "responded": true}, {"name": "Chantal Riemsdijk", "company": "Gemeente Rhenen", "occupation": "Beleidsmedewerker Duurzaamheid", "location": "Netherlands", "status": "Responded", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/chantal-riemsdijk-a7404014a", "email": NaN, "phone": NaN, "responded": true}, {"name": "Johan Edens", "company": "Gemeente Rhenen", "occupation": "Beleidsadviseur warmtetransitie en energietransitie", "location": "Wageningen, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/johan-edens-87a62695", "email": "jedens@upcmail.nl", "phone": NaN, "responded": true}, {"name": "Sjoerd Doggen", "company": "Gemeente Rhenen", "occupation": "Beleidsadviseur duurzaamheid", "location": "Wageningen, Gelderland, Netherlands", "status": "Connection request accepted", "region": "Wageningen", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/sjoerd-doggen-bbb475157", "email": NaN, "phone": NaN, "responded": false}, {"name": "Jeroen Bos", "company": "Gemeente Rijswijk", "occupation": "Senior beleidsmedewerker Energietransitie", "location": "Zoetermeer, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Zoetermeer)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/jeroen-bos-ab4a27127", "email": "jerobos@gmail.com", "phone": NaN, "responded": false}, {"name": "Alexander Van Steenderen", "company": "Gemeente Rotterdam", "occupation": "Strategisch Beleidsadviseur Energietransitie", "location": "The Randstad, Netherlands", "status": "Responded", "region": "Rotterdam", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/alexander-van-steenderen-532694161", "email": NaN, "phone": NaN, "responded": true}, {"name": "Akam R", "company": "Gemeente Rotterdam", "occupation": "Beleidsadviseur Duurzaamheid", "location": "Rotterdam and The Hague", "status": "Connection request accepted", "region": "Rotterdam", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/akam-rashid", "email": NaN, "phone": NaN, "responded": false}, {"name": "Albert Tuit", "company": "Gemeente Rotterdam", "occupation": "Politiek assistent wethouder Lansink-Bastemeijer", "location": "The Hague, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam", "main_region": "Rotterdam", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/albert-tuit-248582152", "email": NaN, "phone": NaN, "responded": false}, {"name": "Istref Shala", "company": "Gemeente Rotterdam", "occupation": "Adviseur Energiearmoede", "location": "Rotterdam, South Holland, Netherlands", "status": "Responded", "region": "Rotterdam", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/istref-shala-3647bb98", "email": NaN, "phone": NaN, "responded": true}, {"name": "Eva Evenblij", "company": "Gemeente Rotterdam", "occupation": "Projectleider Energietransitie Haven", "location": "Bergen op Zoom, North Brabant, Netherlands", "status": "Responded", "region": "Rotterdam", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/eva-evenblij-58404820a", "email": NaN, "phone": NaN, "responded": true}, {"name": "Paul Van Meekeren", "company": "Gemeente Schagen", "occupation": "Programmamanager Duurzaamheid", "location": "Purmerend, North Holland, Netherlands", "status": "Responded", "region": "Amsterdam (regio: Purmerend)", "main_region": "Amsterdam", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/paulvanmeekeren", "email": "pvmeekeren@devoir.nl", "phone": NaN, "responded": true}, {"name": "Ingrid Gyömörei - Agelink", "company": "Gemeente Schiedam", "occupation": "Beleidsadviseur duurzaamheid en dierenwelzijn", "location": "The Hague, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Schiedam)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/ingrid-gy%C3%B6m%C3%B6rei-agelink-b02438158", "email": "gridgyomorei@gmail.com", "phone": NaN, "responded": false}, {"name": "Jelmer Dam", "company": "Gemeente Sliedrecht", "occupation": "Projectleider duurzaamheid", "location": "Nijmegen, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Nijmegen)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/jeldam", "email": "damjelmer@gmail.com", "phone": NaN, "responded": true}, {"name": "Jolieke Van 'T Hoff", "company": "Gemeente Sliedrecht", "occupation": "Junior projectleider duurzaamheid", "location": "Dordrecht, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Dordrecht)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/jmcvanthoff", "email": NaN, "phone": NaN, "responded": false}, {"name": "Anouk Clabbers", "company": "Gemeente Soest", "occupation": "Beleidsadviseur lokale aanpak isolatie & energiearmoede", "location": "Arnhem, Gelderland, Netherlands", "status": "Connection request accepted", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/anouk-clabbers-71a73b1a", "email": NaN, "phone": NaN, "responded": false}, {"name": "Lysanne Zalm", "company": "Gemeente Soest", "occupation": "Communicatieadviseur Energietransitie", "location": "Amsterdam, North Holland, Netherlands", "status": "Connection request accepted", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/lysannezalm", "email": NaN, "phone": NaN, "responded": false}, {"name": "Annemiek Hollander", "company": "Gemeente Texel", "occupation": "Projectleider duurzaamheid", "location": "Amsterdam, North Holland, Netherlands", "status": "Responded", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/annemiek-hollander-72629016", "email": NaN, "phone": NaN, "responded": true}, {"name": "Annedebora Van Kooij", "company": "Gemeente Tilburg", "occupation": "Beleidsadviseur energietransitie gebouwen en wijkuitvoeringsplannen", "location": "Rotterdam, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/annedeboravankooij", "email": NaN, "phone": NaN, "responded": false}, {"name": "Kyra Möhringer", "company": "Gemeente Uithoorn", "occupation": "Beleidsmedewerker Duurzaamheid", "location": "Amsterdam, North Holland, Netherlands", "status": "Responded", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/kyra-m%C3%B6hringer", "email": NaN, "phone": NaN, "responded": true}, {"name": "Kerim Olcay", "company": "Gemeente Veldhoven", "occupation": "Beleidsadviseur (duurzaamheid en sociaal maatschappelijk beleid)", "location": "Enschede, Overijssel, Netherlands", "status": "Responded", "region": "Wageningen (regio: Ede)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/kerim-olcay-61733b16", "email": NaN, "phone": NaN, "responded": true}, {"name": "Pedro Van Eeuwijk", "company": "Gemeente Vijfheerenlanden", "occupation": "Programmamanager Duurzaamheid", "location": "’s-Hertogenbosch, North Brabant, Netherlands", "status": "Responded", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/pedro-van-eeuwijk-136007b", "email": "pedro@idmt.nl", "phone": 657224940, "responded": true}, {"name": "Leonie Brok", "company": "Gemeente Vijfheerenlanden", "occupation": "Beleidsadviseur duurzaamheid", "location": "’s-Hertogenbosch, North Brabant, Netherlands", "status": "Connection request accepted", "region": "Utrecht", "main_region": "Utrecht", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/leonie-brok-a0779a129", "email": NaN, "phone": NaN, "responded": false}, {"name": "Rens De Ron", "company": "Gemeente Vlaardingen", "occupation": "Wethouder gemeente Vlaardingen", "location": "The Randstad, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Vlaardingen)", "main_region": "Rotterdam", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/rens-de-ron-19aab254", "email": NaN, "phone": NaN, "responded": false}, {"name": "Koen Bussink", "company": "Gemeente Vught", "occupation": "Senior Beleidsadviseur Duurzaamheid", "location": "Nijmegen, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Nijmegen)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/koen-bussink-94304748", "email": "k.bussink@hotmail.com", "phone": NaN, "responded": true}, {"name": "Stephanie Onclin Msc", "company": "Gemeente Zaanstad", "occupation": "Wethouder Gemeente Zaanstad", "location": "Amsterdam, North Holland, Netherlands", "status": "Responded", "region": "Amsterdam", "main_region": "Amsterdam", "campaign": "Gemeente | Persona 2 | 1.0", "profile_url": "https://www.linkedin.com/in/stephanie-onclin-msc-a7862429", "email": NaN, "phone": NaN, "responded": true}, {"name": "Melle De Jong", "company": "Gemeente Zaanstad", "occupation": "Programmamanager", "location": "Netherlands", "status": "Responded", "region": "Amsterdam (regio: Zaanstad)", "main_region": "Amsterdam", "campaign": "Gemeente | Persona 2 | 2.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/melledejong", "email": NaN, "phone": NaN, "responded": true}, {"name": "Joacim De Kam", "company": "Gemeente Zaanstad", "occupation": "Advisor Energy Infrastructure", "location": "Haarlem, North Holland, Netherlands", "status": "Responded", "region": "Amsterdam (regio: Zaanstad)", "main_region": "Amsterdam", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/jdekam", "email": NaN, "phone": NaN, "responded": true}, {"name": "Jente Van Langerak", "company": "Gemeente Zaltbommel", "occupation": "Beleidsmedewerker duurzame energie", "location": "Nijmegen, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Nijmegen)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 3.0 | Yoshi", "profile_url": "https://www.linkedin.com/in/jente-van-langerak-41845111b", "email": NaN, "phone": NaN, "responded": true}, {"name": "Jorn De Reus", "company": "Gemeente Zevenaar", "occupation": "Beleidsmedewerker Duurzaamheid", "location": "Nijmegen, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Nijmegen)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/jorndereus", "email": NaN, "phone": NaN, "responded": true}, {"name": "Mirjam Hulst", "company": "Gemeente Zoetermeer", "occupation": "Beleidsadviseur energietransitie / VvE adviseur", "location": "The Hague, South Holland, Netherlands", "status": "Responded", "region": "Rotterdam (regio: Zoetermeer)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/mirjam-hulst", "email": NaN, "phone": NaN, "responded": true}, {"name": "Annebel Laukens", "company": "Gemeente Zoeterwoude", "occupation": "Projectleider energietransitie", "location": "Zoetermeer, South Holland, Netherlands", "status": "Connection request accepted", "region": "Rotterdam (regio: Zoetermeer)", "main_region": "Rotterdam", "campaign": "Gemeentes | Persona 1 | 2.0", "profile_url": "https://www.linkedin.com/in/annebel-laukens", "email": NaN, "phone": NaN, "responded": false}, {"name": "Cyriel Prinsen", "company": "Gemeente Zutphen", "occupation": "Senior beleidsadviseur Energietransitie", "location": "Arnhem, Gelderland, Netherlands", "status": "Responded", "region": "Wageningen (regio: Arnhem)", "main_region": "Wageningen", "campaign": "Gemeentes | Persona 1 | 1.0", "profile_url": "https://www.linkedin.com/in/cyrielprinsen", "email": NaN, "phone": NaN, "responded": true}]};
+        
+        let allConnections = dashboardData.connections;
+        let filteredConnections = allConnections;
+        
+        // Initialiseer statistieken
+        function updateStats() {
+            document.getElementById('totalConnections').textContent = filteredConnections.length;
+            
+            const accepted = filteredConnections.filter(c => c.status === 'Connection request accepted').length;
+            const responded = filteredConnections.filter(c => c.status === 'Responded').length;
+            
+            document.getElementById('acceptedConnections').textContent = accepted;
+            document.getElementById('respondedConnections').textContent = responded;
+            
+            const responseRate = filteredConnections.length > 0 ? 
+                Math.round((responded / filteredConnections.length) * 100) : 0;
+            document.getElementById('responseRate').textContent = responseRate + '%';
+        }
+        
+        // Maak grafieken
+        function createCharts() {
+            // Regio chart
+            const regionCtx = document.getElementById('regionChart').getContext('2d');
+            const regionData = {};
+            filteredConnections.forEach(c => {
+                regionData[c.main_region] = (regionData[c.main_region] || 0) + 1;
+            });
+            
+            new Chart(regionCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(regionData),
+                    datasets: [{
+                        label: 'Aantal Connecties',
+                        data: Object.values(regionData),
+                        backgroundColor: ['#ffa206', '#ffc801', '#ffb347', '#ffd54f'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+            
+            // Status chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            const statusData = {};
+            filteredConnections.forEach(c => {
+                statusData[c.status] = (statusData[c.status] || 0) + 1;
+            });
+            
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusData),
+                    datasets: [{
+                        data: Object.values(statusData),
+                        backgroundColor: ['#ffa206', '#ffc801'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Gedetailleerde regio chart
+            const detailedCtx = document.getElementById('detailedRegionChart').getContext('2d');
+            const detailedRegionData = {};
+            filteredConnections.forEach(c => {
+                detailedRegionData[c.region] = (detailedRegionData[c.region] || 0) + 1;
+            });
+            
+            // Sorteer op aantal
+            const sortedRegions = Object.entries(detailedRegionData)
+                .sort((a, b) => b[1] - a[1]);
+            
+            new Chart(detailedCtx, {
+                type: 'bar',
+                data: {
+                    labels: sortedRegions.map(r => r[0]),
+                    datasets: [{
+                        label: 'Aantal Connecties',
+                        data: sortedRegions.map(r => r[1]),
+                        backgroundColor: '#ffa206',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Vul filters
+        function populateFilters() {
+            const regionFilter = document.getElementById('regionFilter');
+            const statusFilter = document.getElementById('statusFilter');
+            
+            // Unieke regio's
+            const regions = [...new Set(allConnections.map(c => c.main_region))].sort();
+            regions.forEach(region => {
+                const option = document.createElement('option');
+                option.value = region;
+                option.textContent = region;
+                regionFilter.appendChild(option);
+            });
+            
+            // Unieke statussen
+            const statuses = [...new Set(allConnections.map(c => c.status))].sort();
+            statuses.forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                statusFilter.appendChild(option);
+            });
+        }
+        
+        // Filter tabel
+        function filterTable() {
+            const regionFilter = document.getElementById('regionFilter').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+            
+            filteredConnections = allConnections.filter(connection => {
+                const matchesRegion = !regionFilter || connection.main_region.toLowerCase() === regionFilter;
+                const matchesStatus = !statusFilter || connection.status.toLowerCase() === statusFilter;
+                const matchesSearch = !searchFilter || 
+                    connection.name.toLowerCase().includes(searchFilter) ||
+                    connection.company.toLowerCase().includes(searchFilter) ||
+                    (connection.occupation && connection.occupation.toLowerCase().includes(searchFilter));
+                
+                return matchesRegion && matchesStatus && matchesSearch;
+            });
+            
+            renderTable();
+            updateStats();
+        }
+        
+        // Render tabel
+        function renderTable() {
+            const tbody = document.getElementById('connectionsTableBody');
+            const noResults = document.getElementById('noResults');
+            
+            tbody.innerHTML = '';
+            
+            if (filteredConnections.length === 0) {
+                noResults.style.display = 'block';
+                return;
+            }
+            
+            noResults.style.display = 'none';
+            
+            filteredConnections.forEach(connection => {
+                const row = tbody.insertRow();
+                
+                // Naam met link
+                const nameCell = row.insertCell();
+                const nameLink = document.createElement('a');
+                nameLink.href = connection.profile_url;
+                nameLink.textContent = connection.name;
+                nameLink.className = 'profile-link';
+                nameLink.target = '_blank';
+                nameCell.appendChild(nameLink);
+                
+                // Bedrijf
+                row.insertCell().textContent = connection.company || '-';
+                
+                // Functie
+                row.insertCell().textContent = connection.occupation || '-';
+                
+                // Locatie
+                row.insertCell().textContent = connection.location || '-';
+                
+                // Regio
+                row.insertCell().textContent = connection.region;
+                
+                // Status
+                const statusCell = row.insertCell();
+                const statusBadge = document.createElement('span');
+                statusBadge.className = `status-badge ${connection.status === 'Responded' ? 'status-responded' : 'status-accepted'}`;
+                statusBadge.textContent = connection.status === 'Responded' ? 'Gereageerd' : 'Geaccepteerd';
+                statusCell.appendChild(statusBadge);
+                
+                // Campagne
+                row.insertCell().textContent = connection.campaign || '-';
+                
+                // Contact
+                const contactCell = row.insertCell();
+                const contactInfo = [];
+                if (connection.email) contactInfo.push(connection.email);
+                if (connection.phone) contactInfo.push(connection.phone);
+                contactCell.textContent = contactInfo.join(', ') || '-';
+            });
+        }
+        
+        // Exporteer naar CSV
+        function exportToCSV() {
+            const headers = ['Naam', 'Bedrijf', 'Functie', 'Locatie', 'Regio', 'Status', 'Campagne', 'Email', 'Telefoon', 'LinkedIn URL'];
+            const rows = filteredConnections.map(c => [
+                c.name,
+                c.company || '',
+                c.occupation || '',
+                c.location || '',
+                c.region,
+                c.status,
+                c.campaign || '',
+                c.email || '',
+                c.phone || '',
+                c.profile_url
+            ]);
+            
+            let csvContent = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'energiestudent_connecties.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Initialiseer dashboard
+        updateStats();
+        createCharts();
+        populateFilters();
+        renderTable();
+    </script>
+</body>
+</html>
